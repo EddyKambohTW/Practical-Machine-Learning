@@ -1,19 +1,18 @@
-<html>
+---
+title: "Finalproject"
+author: "Eddy"
+date: "Saturday, September 20, 2014"
+output: word_document
+---
 
-<head>
-<title>Title</title>
-</head>
-
-<body>
-
-<p> The Goal of this project is to predict the variable 'classe' which is the way in which people perform their exercise.
+The Goal of this project is to predict the variable 'classe' which is the way in which people perform their exercise.
 Classe is broken into five levels from A to E. This data set is an attempt to depart from previous studies that simply attempt to determine the type of activies performed.Here the emphasis is more on the quality. For example for a given exercise,class A will correspond to the correct execution while the other classes
-correspond to the common mistake of performing that exercise. The goal here is therefore to predict the manner the exercise was perform by the participant in the study.</p>
+correspond to the common mistake of performing that exercise. The goal here is therefore to predict the manner the exercise was perform by the participant in the study.
 
-<p>The first thing here is the look  at the distribution of Classe both in 
-absolute and percentage term. At the first look, classe A is represented in high proportion while the remaining classes are equally distribution.</P>
+The first thing here is the look  at the distribution of Classe both in 
+absolute and percentage term. At the first look, classe A is represented in high proportion while the remaining classes are equally distribution.
 
-<!--begin.rcode
+```{r,echo=FALSE}
 library(caret)
 training<-read.csv('pml-training.csv')
 
@@ -70,17 +69,17 @@ crossv <- train[-inTrain,]
 train1 <- train[ inTrain,]
 
 mod1<- train(classe ~ ., data=train1, method="rf")
-end.rcode-->
+```
 
-<p>Before proceeding with the analysis, the first thing will be to reduce the predictors to use only the significant ones. The first six columns containing information about each observations such as names and time was first removed leaving leaving 154 variables in the data set. Then, the variable with NAs length 95 percent of the training set length were  removed. There were 87 variables retained as a result of this procedure. 
+Before proceeding with the analysis, the first thing will be to reduce the predictors to use only the significant ones. The first six columns containing information about each observations such as names and time was first removed leaving leaving 154 variables in the data set.Then, the variable with NAs length 95 percent of the training set length were  removed. There were 87 variables retained as a result of this procedure. 
 Next using the using the nearZeroVar in the caret package helped remove predictors whose percent of unique was less than 20 percent and the ratio of the most frequent to the second most frequent value is greater than 20. This procedure removed 33 variables in the data set. Next, predictors in the pairwise correlation greater than 0.75 was removed taking out 20 more predictors from the dataset leaving 34 predictors.
 
 Given the variables retained after eliminating those highly correlated
 the next step is to preprocess the variables in the training set  
 to reduce the number of predictors and the noise due to averaging.Now the analysis can be performed.
-The random forest is used here because of the ability to generate high accuracy compared to other models. The training set was split into two sets: 60 percent of the data to train the model and 40 percent to validate the results.</p>
+The random forest is used here because of ability to generate high accuracy compared to other models. The training set was split into two sets: 60 percent of the data to train the model and 40 percent to validate the results.
 
-<!--begin.rcode
+```{r}
 ## In sample
 confusionMatrix(predict(mod1,train1), train1$classe) ## Accuracy is 1
 
@@ -88,18 +87,6 @@ confusionMatrix(predict(mod1,train1), train1$classe) ## Accuracy is 1
 ## Out of sample
 confusionMatrix(predict(mod1,crossv), crossv$classe) ## Accurary is 0.9976. So the error rate is 0.24 percent
 
-end.rcode-->
+```
 
 
-<p></p>
-
-
-
-
-
-<!--begin.rcode fig.width=7, fig.height=6
-
-end.rcode-->
-
-</body>
-</html>
