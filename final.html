@@ -1,0 +1,248 @@
+<html>
+
+<head>
+<style type="text/css">
+.knitr.inline {
+  background-color: #f7f7f7;
+  border:solid 1px #B0B0B0;
+}
+.error {
+	font-weight: bold;
+	color: #FF0000;
+},
+.warning {
+	font-weight: bold;
+}
+.message {
+	font-style: italic;
+}
+.source, .output, .warning, .error, .message {
+	padding: 0em 1em;
+  border:solid 1px #F7F7F7;
+}
+.source {
+  background-color: #f5f5f5;
+}
+.rimage.left {
+  text-align: left;
+}
+.rimage.right {
+  text-align: right;
+}
+.rimage.center {
+  text-align: center;
+}
+.hl.num {
+  color: #AF0F91;
+}
+.hl.str {
+  color: #317ECC;
+}
+.hl.com {
+  color: #AD95AF;
+  font-style: italic;
+}
+.hl.opt {
+  color: #000000;
+}
+.hl.std {
+  color: #585858;
+}
+.hl.kwa {
+  color: #295F94;
+  font-weight: bold;
+}
+.hl.kwb {
+  color: #B05A65;
+}
+.hl.kwc {
+  color: #55aa55;
+}
+.hl.kwd {
+  color: #BC5A65;
+  font-weight: bold;
+}
+</style>
+<title>Title</title>
+</head>
+
+<body>
+
+<p> The Goal of this project is to predict the variable 'classe' which is the way in which people perform their exercise.
+Classe is broken into five levels from A to E. This data set is an attempt to depart from previous studies that simply attempt to determine the type of activies performed.Here the emphasis is more on the quality. For example for a given exercise,class A will correspond to the correct execution while the other classes
+correspond to the common mistake of performing that exercise. The goal here is therefore to predict the manner the exercise was perform by the participant in the study.</p>
+
+<p>The first thing here is the look  at the distribution of Classe both in 
+absolute and percentage term. At the first look, classe A is represented in high proportion while the remaining classes are equally distribution.</P>
+
+<div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(caret)</span>
+</pre></div>
+<div class="warning"><pre class="knitr r">## Warning: package 'caret' was built under R version 3.1.1
+</pre></div>
+<div class="message"><pre class="knitr r">## Loading required package: lattice
+## Loading required package: ggplot2
+</pre></div>
+<div class="warning"><pre class="knitr r">## Warning: package 'ggplot2' was built under R version 3.1.1
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">training</span><span class="hl kwb">&lt;-</span><span class="hl kwd">read.csv</span><span class="hl std">(</span><span class="hl str">'pml-training.csv'</span><span class="hl std">)</span>
+
+<span class="hl std">testing</span><span class="hl kwb">&lt;-</span><span class="hl kwd">read.csv</span><span class="hl std">(</span><span class="hl str">'pml-testing.csv'</span><span class="hl std">)</span>
+
+<span class="hl kwd">table</span><span class="hl std">(training[,</span><span class="hl num">160</span><span class="hl std">])</span> <span class="hl com">## Classe distribution in absolute value</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+##    A    B    C    D    E 
+## 5580 3797 3422 3216 3607
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">table</span><span class="hl std">(training[,</span><span class="hl num">160</span><span class="hl std">])</span><span class="hl opt">/</span><span class="hl kwd">dim</span><span class="hl std">(training)[</span><span class="hl num">1</span><span class="hl std">]</span> <span class="hl com">## Classe distribution in percentage value</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+##      A      B      C      D      E 
+## 0.2844 0.1935 0.1744 0.1639 0.1838
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">training1</span><span class="hl kwb">&lt;-</span><span class="hl std">training[,</span><span class="hl opt">-</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">6</span><span class="hl std">)]</span><span class="hl com">##now 154 columns after removing the first six columns containing information about each observations such as names and time.</span>
+<span class="hl std">testing1</span><span class="hl kwb">&lt;-</span><span class="hl std">testing[,</span><span class="hl opt">-</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">6</span><span class="hl std">)]</span>
+
+<span class="hl std">training1[,</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">153</span><span class="hl std">)]</span><span class="hl kwb">&lt;-</span><span class="hl kwd">as.numeric</span><span class="hl std">(</span><span class="hl kwd">unlist</span><span class="hl std">(training1[,</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">153</span><span class="hl std">)]))</span>
+<span class="hl std">testing1[,</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">153</span><span class="hl std">)]</span><span class="hl kwb">&lt;-</span><span class="hl kwd">as.numeric</span><span class="hl std">(</span><span class="hl kwd">unlist</span><span class="hl std">(testing1[,</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">153</span><span class="hl std">)]))</span>
+
+<span class="hl std">treshold</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">dim</span><span class="hl std">(training1)[</span><span class="hl num">1</span><span class="hl std">]</span> <span class="hl opt">*</span> <span class="hl num">0.95</span>
+<span class="hl com">#Remove columns with more than 95% of NA or &quot;&quot; values</span>
+<span class="hl std">goodColumns</span> <span class="hl kwb">&lt;-</span> <span class="hl opt">!</span><span class="hl kwd">apply</span><span class="hl std">(training1,</span> <span class="hl num">2</span><span class="hl std">,</span> <span class="hl kwa">function</span><span class="hl std">(</span><span class="hl kwc">x</span><span class="hl std">)</span> <span class="hl kwd">sum</span><span class="hl std">(</span><span class="hl kwd">is.na</span><span class="hl std">(x))</span> <span class="hl opt">&gt;</span> <span class="hl std">treshold</span>  <span class="hl opt">||</span> <span class="hl kwd">sum</span><span class="hl std">(x</span><span class="hl opt">==</span><span class="hl str">&quot;&quot;</span><span class="hl std">)</span> <span class="hl opt">&gt;</span> <span class="hl std">treshold)</span>
+
+<span class="hl std">training1</span> <span class="hl kwb">&lt;-</span> <span class="hl std">training1[, goodColumns]</span>
+<span class="hl std">testing1</span> <span class="hl kwb">&lt;-</span> <span class="hl std">testing1[, goodColumns]</span>
+
+<span class="hl std">a</span><span class="hl kwb">&lt;-</span><span class="hl kwd">nearZeroVar</span><span class="hl std">(training1[,</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">87</span><span class="hl std">)])</span> <span class="hl com">##33 predictors are found in the training set to be near zero-variance predictor.</span>
+
+<span class="hl std">training2</span><span class="hl kwb">&lt;-</span><span class="hl std">training1[,</span><span class="hl opt">-</span><span class="hl std">a]</span>
+
+<span class="hl std">testing2</span><span class="hl kwb">&lt;-</span><span class="hl std">testing1[,</span><span class="hl opt">-</span><span class="hl std">a]</span>
+
+<span class="hl com">##Now finding and eliminating predictor with large correlation</span>
+
+<span class="hl std">descrCorr</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">cor</span><span class="hl std">(training2[,</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">53</span><span class="hl std">)])</span>
+<span class="hl std">highCorr</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">findCorrelation</span><span class="hl std">(descrCorr,</span> <span class="hl num">0.75</span><span class="hl std">)</span> <span class="hl com">## removed predictor with pairwise correlation greater than 0.75</span>
+
+
+<span class="hl std">training3</span><span class="hl kwb">&lt;-</span><span class="hl std">training2[,</span><span class="hl opt">-</span><span class="hl std">highCorr]</span><span class="hl com">##now 53 columns</span>
+
+<span class="hl std">testing3</span><span class="hl kwb">&lt;-</span><span class="hl std">testing2[,</span><span class="hl opt">-</span><span class="hl std">highCorr]</span>
+
+<span class="hl com">## Given the variables retained after eliminating those highly correlated</span>
+<span class="hl com">## the next step is to preprocess the variables in the training set  </span>
+<span class="hl com">## to reduce the number of predictors and the noise due to averaging.</span>
+
+<span class="hl std">prdat</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">preProcess</span><span class="hl std">(training3[,</span><span class="hl opt">-</span><span class="hl num">34</span><span class="hl std">])</span>
+<span class="hl std">train</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">predict</span><span class="hl std">(prdat, training3[,</span><span class="hl opt">-</span><span class="hl num">34</span><span class="hl std">])</span>
+<span class="hl std">test</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">predict</span><span class="hl std">(prdat, testing3[,</span><span class="hl opt">-</span><span class="hl num">34</span><span class="hl std">])</span>
+
+<span class="hl std">train</span><span class="hl opt">$</span><span class="hl std">classe</span><span class="hl kwb">&lt;-</span><span class="hl std">training3[,</span><span class="hl num">34</span><span class="hl std">]</span>
+<span class="hl std">test</span><span class="hl opt">$</span><span class="hl std">classe</span><span class="hl kwb">&lt;-</span><span class="hl num">NA</span>
+
+<span class="hl std">inTrain</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">createDataPartition</span><span class="hl std">(train</span><span class="hl opt">$</span><span class="hl std">classe,</span> <span class="hl kwc">p</span> <span class="hl std">=</span> <span class="hl num">0.6</span><span class="hl std">)[[</span><span class="hl num">1</span><span class="hl std">]]</span>
+<span class="hl std">crossv</span> <span class="hl kwb">&lt;-</span> <span class="hl std">train[</span><span class="hl opt">-</span><span class="hl std">inTrain,]</span>
+<span class="hl std">train1</span> <span class="hl kwb">&lt;-</span> <span class="hl std">train[ inTrain,]</span>
+
+<span class="hl std">mod1</span><span class="hl kwb">&lt;-</span> <span class="hl kwd">train</span><span class="hl std">(classe</span> <span class="hl opt">~</span> <span class="hl std">.,</span> <span class="hl kwc">data</span><span class="hl std">=train1,</span> <span class="hl kwc">method</span><span class="hl std">=</span><span class="hl str">&quot;rf&quot;</span><span class="hl std">)</span>
+</pre></div>
+<div class="message"><pre class="knitr r">## Loading required package: randomForest
+</pre></div>
+<div class="warning"><pre class="knitr r">## Warning: package 'randomForest' was built under R version 3.1.1
+</pre></div>
+<div class="message"><pre class="knitr r">## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+</pre></div>
+</div></div>
+
+<p>Before proceeding with the analysis, the first thing will be to reduce the predictors to use only the significant ones. The first six columns containing information about each observations such as names and time was first removed leaving leaving 154 variables in the data set. Then, the variable with NAs length 95 percent of the training set length were  removed. There were 87 variables retained as a result of this procedure. 
+Next using the using the nearZeroVar in the caret package helped remove predictors whose percent of unique was less than 20 percent and the ratio of the most frequent to the second most frequent value is greater than 20. This procedure removed 33 variables in the data set. Next, predictors in the pairwise correlation greater than 0.75 was removed taking out 20 more predictors from the dataset leaving 34 predictors.
+
+Given the variables retained after eliminating those highly correlated
+the next step is to preprocess the variables in the training set  
+to reduce the number of predictors and the noise due to averaging.Now the analysis can be performed.
+The random forest is used here because of the ability to generate high accuracy compared to other models. The training set was split into two sets: 60 percent of the data to train the model and 40 percent to validate the results.</p>
+
+<div class="chunk" id="unnamed-chunk-2"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com">## In sample</span>
+<span class="hl kwd">confusionMatrix</span><span class="hl std">(</span><span class="hl kwd">predict</span><span class="hl std">(mod1,train1), train1</span><span class="hl opt">$</span><span class="hl std">classe)</span> <span class="hl com">## Accuracy is 1</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 3348    0    0    0    0
+##          B    0 2279    0    0    0
+##          C    0    0 2054    0    0
+##          D    0    0    0 1930    0
+##          E    0    0    0    0 2165
+## 
+## Overall Statistics
+##                                 
+##                Accuracy : 1     
+##                  95% CI : (1, 1)
+##     No Information Rate : 0.284 
+##     P-Value [Acc > NIR] : <2e-16
+##                                 
+##                   Kappa : 1     
+##  Mcnemar's Test P-Value : NA    
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             1.000    1.000    1.000    1.000    1.000
+## Specificity             1.000    1.000    1.000    1.000    1.000
+## Pos Pred Value          1.000    1.000    1.000    1.000    1.000
+## Neg Pred Value          1.000    1.000    1.000    1.000    1.000
+## Prevalence              0.284    0.194    0.174    0.164    0.184
+## Detection Rate          0.284    0.194    0.174    0.164    0.184
+## Detection Prevalence    0.284    0.194    0.174    0.164    0.184
+## Balanced Accuracy       1.000    1.000    1.000    1.000    1.000
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl com">## Out of sample</span>
+<span class="hl kwd">confusionMatrix</span><span class="hl std">(</span><span class="hl kwd">predict</span><span class="hl std">(mod1,crossv), crossv</span><span class="hl opt">$</span><span class="hl std">classe)</span> <span class="hl com">## Accurary is 0.9976. So the error rate is 0.24 percent</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2231    3    0    0    0
+##          B    1 1513    3    2    0
+##          C    0    2 1363    2    0
+##          D    0    0    0 1282    2
+##          E    0    0    2    0 1440
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.998         
+##                  95% CI : (0.997, 0.999)
+##     No Information Rate : 0.284         
+##     P-Value [Acc > NIR] : <2e-16        
+##                                         
+##                   Kappa : 0.997         
+##  Mcnemar's Test P-Value : NA            
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             1.000    0.997    0.996    0.997    0.999
+## Specificity             0.999    0.999    0.999    1.000    1.000
+## Pos Pred Value          0.999    0.996    0.997    0.998    0.999
+## Neg Pred Value          1.000    0.999    0.999    0.999    1.000
+## Prevalence              0.284    0.193    0.174    0.164    0.184
+## Detection Rate          0.284    0.193    0.174    0.163    0.184
+## Detection Prevalence    0.285    0.194    0.174    0.164    0.184
+## Balanced Accuracy       1.000    0.998    0.998    0.998    0.999
+</pre></div>
+</div></div>
+
+
+<p></p>
+
+
+
+
+
+
+
+</body>
+</html>

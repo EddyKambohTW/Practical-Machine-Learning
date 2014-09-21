@@ -1,0 +1,105 @@
+<html>
+
+<head>
+<title>Title</title>
+</head>
+
+<body>
+
+<p> The Goal of this project is to predict the variable 'classe' which is the way in which people perform their exercise.
+Classe is broken into five levels from A to E. This data set is an attempt to depart from previous studies that simply attempt to determine the type of activies performed.Here the emphasis is more on the quality. For example for a given exercise,class A will correspond to the correct execution while the other classes
+correspond to the common mistake of performing that exercise. The goal here is therefore to predict the manner the exercise was perform by the participant in the study.</p>
+
+<p>The first thing here is the look  at the distribution of Classe both in 
+absolute and percentage term. At the first look, classe A is represented in high proportion while the remaining classes are equally distribution.</P>
+
+<!--begin.rcode
+library(caret)
+training<-read.csv('pml-training.csv')
+
+testing<-read.csv('pml-testing.csv')
+
+table(training[,160]) ## Classe distribution in absolute value
+
+table(training[,160])/dim(training)[1] ## Classe distribution in percentage value
+
+
+
+training1<-training[,-c(1:6)]##now 154 columns after removing the first six columns containing information about each observations such as names and time.
+testing1<-testing[,-c(1:6)]
+
+training1[,c(1:153)]<-as.numeric(unlist(training1[,c(1:153)]))
+testing1[,c(1:153)]<-as.numeric(unlist(testing1[,c(1:153)]))
+
+treshold <- dim(training1)[1] * 0.95
+#Remove columns with more than 95% of NA or "" values
+goodColumns <- !apply(training1, 2, function(x) sum(is.na(x)) > treshold  || sum(x=="") > treshold)
+
+training1 <- training1[, goodColumns]
+testing1 <- testing1[, goodColumns]
+
+a<-nearZeroVar(training1[,c(1:87)]) ##33 predictors are found in the training set to be near zero-variance predictor.
+
+training2<-training1[,-a]
+
+testing2<-testing1[,-a]
+
+##Now finding and eliminating predictor with large correlation
+
+descrCorr <- cor(training2[,c(1:53)])
+highCorr <- findCorrelation(descrCorr, 0.75) ## removed predictor with pairwise correlation greater than 0.75
+
+
+training3<-training2[,-highCorr]##now 53 columns
+
+testing3<-testing2[,-highCorr]
+
+## Given the variables retained after eliminating those highly correlated
+## the next step is to preprocess the variables in the training set  
+## to reduce the number of predictors and the noise due to averaging.
+
+prdat <- preProcess(training3[,-34])
+train <- predict(prdat, training3[,-34])
+test <- predict(prdat, testing3[,-34])
+
+train$classe<-training3[,34]
+test$classe<-NA
+
+inTrain <- createDataPartition(train$classe, p = 0.6)[[1]]
+crossv <- train[-inTrain,]
+train1 <- train[ inTrain,]
+
+mod1<- train(classe ~ ., data=train1, method="rf")
+end.rcode-->
+
+<p>Before proceeding with the analysis, the first thing will be to reduce the predictors to use only the significant ones. The first six columns containing information about each observations such as names and time was first removed leaving leaving 154 variables in the data set. Then, the variable with NAs length 95 percent of the training set length were  removed. There were 87 variables retained as a result of this procedure. 
+Next using the using the nearZeroVar in the caret package helped remove predictors whose percent of unique was less than 20 percent and the ratio of the most frequent to the second most frequent value is greater than 20. This procedure removed 33 variables in the data set. Next, predictors in the pairwise correlation greater than 0.75 was removed taking out 20 more predictors from the dataset leaving 34 predictors.
+
+Given the variables retained after eliminating those highly correlated
+the next step is to preprocess the variables in the training set  
+to reduce the number of predictors and the noise due to averaging.Now the analysis can be performed.
+The random forest is used here because of the ability to generate high accuracy compared to other models. The training set was split into two sets: 60 percent of the data to train the model and 40 percent to validate the results.</p>
+
+<!--begin.rcode
+## In sample
+confusionMatrix(predict(mod1,train1), train1$classe) ## Accuracy is 1
+
+
+## Out of sample
+confusionMatrix(predict(mod1,crossv), crossv$classe) ## Accurary is 0.9976. So the error rate is 0.24 percent
+
+end.rcode-->
+
+
+<p></p>
+
+
+
+
+
+<!--begin.rcode fig.width=7, fig.height=6
+
+end.rcode-->
+
+</body>
+</html>
